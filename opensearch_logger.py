@@ -1,5 +1,5 @@
 from opensearchpy import OpenSearch
-from opensearch_dsl import Document, Text, connections, Search
+from opensearch_dsl import Document, Text, connections, Keyword
 from datetime import datetime
 
 # Настройки подключения
@@ -48,7 +48,7 @@ class OpenSearchClient:
 class Log(Document):
     message = Text()
     timestamp = Text()
-    level = Text()
+    level = Text(fields={'raw': Keyword()})
     traceback = Text()
 
     class Index:
