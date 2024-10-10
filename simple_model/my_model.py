@@ -24,7 +24,7 @@ class SimpleModel(MLModel):
     async def predict(self, payload: InferenceRequest) -> InferenceResponse:    
         try:
             # Логирование входного запроса
-            self.logger_client.log(f"Received request with payload: {payload}")
+            self.logger_client.log(f"Received request with payload: {payload}", level="INFO")
             
             payload = self._check_request(payload)
             data = self.get_data_vector(payload)
@@ -39,7 +39,7 @@ class SimpleModel(MLModel):
 
             # Получение предсказания от модели
             prediction = self.model.predict(data)
-            self.logger_client.log(f"Prediction: {prediction}")
+            self.logger_client.log(f"Prediction: {prediction}", level="INFO")
 
             # Формирование ответа
             response = InferenceResponse(
@@ -49,7 +49,7 @@ class SimpleModel(MLModel):
             )
 
             # Логирование успешного завершения
-            self.logger_client.log(f"Inference successful for model {self.name} v{self.version}")
+            self.logger_client.log(f"Inference successful for model {self.name} v{self.version}", level="INFO")
             return response
         except Exception as e:
             # Логирование исключений с деталями
