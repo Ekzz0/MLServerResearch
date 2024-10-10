@@ -1,18 +1,20 @@
 import joblib
-from elasticsearch_logger import ElasticsearchLogger
 import mlserver
 import numpy as np
 from mlserver import MLModel
 from mlserver.codecs import NumpyCodec
 from mlserver.types import InferenceRequest, InferenceResponse
-from config import HOST, API_KEY
+from opensearch_logger import Log, OpenSearchClient
 
 
 class SimpleModel(MLModel):
 
     async def load(self):
         self.model = joblib.load("model.pkl")
-        self.logger = ElasticsearchLogger(api_key=API_KEY, elastic_host=HOST).get()
+
+        # Инициализация клиента OpenSearch
+        self.logger_client = OpenSearchClient()  # Создайте экземпляр вашего клиента
+        Log.init(using=self.logger_client.client)  # Инициализация структуры документа для логов
 
         mlserver.register("requests_with_nan_features", "Количество запросов с недостатком фичей")
         mlserver.register("test_metric", "Тестовая метрика")
@@ -20,8 +22,8 @@ class SimpleModel(MLModel):
     
     async def predict(self, payload: InferenceRequest) -> InferenceResponse:    
         try:
-            # Логирование входного запроса. Но тут может быть персоналка
-            self.logger.info(f"Received request with payload: {payload}")
+            # Логирование входного запроса
+            self.logger_client.log(f"Received request with payload: {payload}")
             
             payload = self._check_request(payload)
             data = self.get_data_vector(payload)
@@ -31,12 +33,12 @@ class SimpleModel(MLModel):
             if has_nan:
                 mlserver.log(requests_with_nan_features=1)
 
-                 # Логируем в Elasticsearch. Но тут может быть персоналка
-                self.logger.warning(f"Request contains NaN values in features. Model: {self.name}, Payload: {payload}")
+                # Логируем в OpenSearch
+                self.logger_client.log(f"Request contains NaN values in features. Model: {self.name}, Payload: {payload}")
 
             # Получение предсказания от модели
             prediction = self.model.predict(data)
-            self.logger.info(f"Prediction: {prediction}")
+            self.logger_client.log(f"Prediction: {prediction}")
 
             # Формирование ответа
             response = InferenceResponse(
@@ -46,11 +48,11 @@ class SimpleModel(MLModel):
             )
 
             # Логирование успешного завершения
-            self.logger.info(f"Inference successful for model {self.name} v{self.version}")
+            self.logger_client.log(f"Inference successful for model {self.name} v{self.version}")
             return response
         except Exception as e:
             # Логирование исключений с деталями
-            self.logger.error(f"Error during inference: {str(e)}", exc_info=True)
+            self.logger_client.log(f"Error during inference: {str(e)}")
             raise e
     
     def get_data_vector(self, inf_request: InferenceRequest) -> np.array:
