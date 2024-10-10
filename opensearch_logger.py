@@ -27,21 +27,28 @@ class OpenSearchClient:
         response = self.client.indices.delete(index=index_name)
         print('Индекс удален:', response)
 
-    def log(self, message: str, index='logs-index'):
+    def log(self, message: str, level: str = "INFO", traceback: str = None, index='logs-index'):
         """Метод для логирования сообщений в OpenSearch"""
         current_timestamp = datetime.now().isoformat()  # Получаем текущее время
+        log_body = {
+            'message': message,
+            'level': level,  # Уровень логирования
+            'timestamp': current_timestamp  # Используем текущее время
+        }
+
+        if traceback:  # Добавляем traceback, если он есть
+            log_body['traceback'] = traceback
+
         self.client.index(
             index=index,
-            body={
-                'message': message,
-                'timestamp': current_timestamp  # Используем текущее время
-            }
+            body=log_body
         )
 
 # Определение структуры документа
 class Log(Document):
     message = Text()
     timestamp = Text()
+    level = Text()
     traceback = Text()
 
     class Index:

@@ -1,4 +1,5 @@
 import joblib
+import traceback as tb
 import mlserver
 import numpy as np
 from mlserver import MLModel
@@ -34,7 +35,7 @@ class SimpleModel(MLModel):
                 mlserver.log(requests_with_nan_features=1)
 
                 # Логируем в OpenSearch
-                self.logger_client.log(f"Request contains NaN values in features. Model: {self.name}, Payload: {payload}")
+                self.logger_client.log(f"Request contains NaN values in features. Model: {self.name}, Payload: {payload}", level="WARNING")
 
             # Получение предсказания от модели
             prediction = self.model.predict(data)
@@ -52,8 +53,9 @@ class SimpleModel(MLModel):
             return response
         except Exception as e:
             # Логирование исключений с деталями
-            self.logger_client.log(f"Error during inference: {str(e)}")
-            raise e
+            tb_str = tb.format_exc()  # Получаем traceback
+            self.logger_client.log(f"Error during inference: {str(e)}", level="ERROR", traceback=tb_str)
+            # raise e
     
     def get_data_vector(self, inf_request: InferenceRequest) -> np.array:
         """Функция для обработки и преобразования запроса к pandas.DataFrame"""
