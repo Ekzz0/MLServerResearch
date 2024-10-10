@@ -48,7 +48,7 @@ class OpenSearchClient:
 class Log(Document):
     message = Text()
     timestamp = Text()
-    level = Keyword()
+    level = Text(fields={'raw': Keyword()})
     traceback = Text()
 
     class Index:
