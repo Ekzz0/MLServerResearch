@@ -1,11 +1,8 @@
-import os
 from elasticsearch_logger import ElasticsearchLogger
-from dotenv import load_dotenv
-
-load_dotenv()
+from config import HOST, API_KEY
 
 # Пример использования
-logger = ElasticsearchLogger(api_key=os.getenv("API_KEY"), elastic_host=os.getenv("HOST")).get()
+logger = ElasticsearchLogger(api_key=API_KEY, elastic_host=HOST).get()
 logger.info("This is a test log message sent to Elasticsearch.")
 
 

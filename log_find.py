@@ -1,11 +1,9 @@
-import os
-from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
+from config import HOST, API_KEY
 
-load_dotenv()
 
 # Инициализация клиента Elasticsearch
-client = Elasticsearch(api_key=os.getenv("API_KEY"), elastic_host=os.getenv("HOST"))
+client = Elasticsearch(api_key=API_KEY, elastic_host=HOST)
 
 # Имя индекса
 index_name = "aboba_index"

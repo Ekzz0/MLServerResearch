@@ -1,4 +1,3 @@
-import os
 import joblib
 from elasticsearch_logger import ElasticsearchLogger
 import mlserver
@@ -6,15 +5,14 @@ import numpy as np
 from mlserver import MLModel
 from mlserver.codecs import NumpyCodec
 from mlserver.types import InferenceRequest, InferenceResponse
-from dotenv import load_dotenv
+from config import HOST, API_KEY
 
-load_dotenv()
 
 class SimpleModel(MLModel):
 
     async def load(self):
         self.model = joblib.load("model.pkl")
-        self.logger = ElasticsearchLogger(api_key=os.getenv("API_KEY"), elastic_host=os.getenv("HOST")).get()
+        self.logger = ElasticsearchLogger(api_key=API_KEY, elastic_host=HOST).get()
 
         mlserver.register("requests_with_nan_features", "Количество запросов с недостатком фичей")
         mlserver.register("test_metric", "Тестовая метрика")
